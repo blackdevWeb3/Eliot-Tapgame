@@ -1,8 +1,8 @@
 // Quests.tsx
 import React from "react";
 import Content from "@/components/Quests/Content";
-import Footer from "@/components/Quests/Footer";
-import Header from "@/components/Quests/Header";
+import Header from "@/components/Header/Header";
+import Footer from "@/components/Footer/Footer";
 
 // Effects Imports
 import effectBackground from "@/assets/Quests/Background.png";

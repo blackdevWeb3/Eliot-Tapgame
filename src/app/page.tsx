@@ -1,10 +1,11 @@
 // app/page.tsx
 'use client'
+import { Suspense } from "react";
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 
-export default function Page() {
+function UserDataFetcher() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUserData } = useUser();
@@ -38,4 +39,12 @@ export default function Page() {
   }, [searchParams, router, setUserData]);
 
   return null;
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserDataFetcher />
+    </Suspense>
+  );
 }
