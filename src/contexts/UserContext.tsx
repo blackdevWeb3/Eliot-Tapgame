@@ -1,0 +1,125 @@
+'use client'
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
+import { SnackbarProvider } from 'notistack';
+
+const manifestUrl = '/tonconnect-manifest.json';
+
+interface UserData {
+  _id: { $oid: string };
+  t_id: string;
+  t_name: string;
+  balance: number;
+  totalEarned: number;
+  earnPerTap: number;
+  energy: number;
+  invitees: string[];
+  isPremium: boolean;
+  items: any[];
+  referalLink: string;
+  last_login_timestamp: string;
+}
+
+interface UserContextType {
+  userData: UserData | null;
+  setUserData: (data: UserData | null) => void;
+  mount: number;
+  setMount: (value: number) => void;
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+export function UserProvider({ children }: { children: ReactNode }) {
+  const [userData, setUserData] = useState<UserData | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('userData');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+
+  const [mount, setMount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('mount');
+      if (saved) {
+        const parsedValue = parseInt(saved, 10);
+        // Return 500 if the parsed value is NaN, otherwise use the parsed value
+        return isNaN(parsedValue) ? 500 : parsedValue;
+      }
+      // If no saved value, use userData?.energy or default to 500
+      return userData?.energy || 500;
+    }
+    return 500;
+  });
+
+  useEffect(() => {
+    if (userData) {
+      localStorage.setItem('userData', JSON.stringify(userData));
+    } else {
+      localStorage.removeItem('userData');
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    // Ensure we're not storing NaN
+    const mountValue = isNaN(mount) ? 500 : mount;
+    localStorage.setItem('mount', mountValue.toString());
+  }, [mount]);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    let lastUpdate = Date.now();
+
+    if (userData) {
+      const now = Date.now();
+      const savedLastUpdate = localStorage.getItem('lastUpdate');
+      if (savedLastUpdate) {
+        const timePassed = Math.floor((now - parseInt(savedLastUpdate, 10)) / 1000);
+        if (timePassed > 0) {
+          setMount(prev => {
+            const prevValue = isNaN(prev) ? 500 : prev;
+            const newMount = Math.min(prevValue + timePassed, userData.energy);
+            return newMount;
+          });
+        }
+      }
+
+      intervalId = setInterval(() => {
+        setMount(prevMount => {
+          const prevValue = isNaN(prevMount) ? 500 : prevMount;
+          if (prevValue < userData.energy) {
+            return prevValue + 1;
+          }
+          return prevValue;
+        });
+        lastUpdate = Date.now();
+        localStorage.setItem('lastUpdate', lastUpdate.toString());
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        localStorage.setItem('lastUpdate', lastUpdate.toString());
+      }
+    };
+  }, [userData]);
+
+  return (
+    <TonConnectUIProvider manifestUrl={manifestUrl}>
+      <UserContext.Provider value={{ userData, setUserData, mount, setMount }}>
+        <SnackbarProvider>
+          {children}
+        </SnackbarProvider>
+      </UserContext.Provider>
+    </TonConnectUIProvider>
+  );
+}
+
+export function useUser() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+}
