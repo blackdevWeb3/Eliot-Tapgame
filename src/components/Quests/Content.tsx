@@ -23,7 +23,7 @@ const socialTasks: Task[] = [
     points: 1000,
     completed: false,
     type: 'telegram',
-    url: 'https://t.me/yourchannel',
+    url: 'https://t.me/chuckleofficial',
     icon: '/assets/Quests/telegram-icon.svg'
   },
   {
@@ -32,7 +32,7 @@ const socialTasks: Task[] = [
     points: 1000,
     completed: false,
     type: 'twitter',
-    url: 'https://twitter.com/youraccount',
+    url: 'https://x.com/chucklememecoin',
     icon: '/assets/Quests/twitter.png'
   },
   {
@@ -41,7 +41,7 @@ const socialTasks: Task[] = [
     points: 1000,
     completed: false,
     type: 'youtube',
-    url: 'https://youtube.com/yourchannel',
+    url: 'https://www.youtube.com/@ChuckleMemeCoin',
     icon: '/assets/Quests/youtube.png'
   },
 ];
