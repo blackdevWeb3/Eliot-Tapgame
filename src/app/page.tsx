@@ -7,8 +7,8 @@ import { ArrowRight } from "lucide-react";
 
 function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) => void }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
-  const inputRefs = useRef<HTMLDivElement[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const isComplete = code.every(char => char !== '');
@@ -17,48 +17,74 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
     }
   }, [code, onCodeComplete]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (/^[a-zA-Z0-9]$/.test(e.key)) {
-        if (currentIndex < 6) {
-          const newCode = [...code];
-          newCode[currentIndex] = e.key.toUpperCase();
-          setCode(newCode);
-          setCurrentIndex(prev => Math.min(prev + 1, 5));
-        }
-      } else if (e.key === 'Backspace') {
+  const handleInput = (value: string) => {
+    if (/^[a-zA-Z0-9]$/.test(value)) {
+      if (currentIndex < 6) {
         const newCode = [...code];
-        if (currentIndex === 5 && code[5] !== '') {
-          newCode[5] = '';
-        } else if (currentIndex > 0) {
-          newCode[currentIndex - 1] = '';
-          setCurrentIndex(prev => Math.max(prev - 1, 0));
-        }
+        newCode[currentIndex] = value.toUpperCase();
         setCode(newCode);
+        setCurrentIndex(prev => Math.min(prev + 1, 5));
       }
-    };
+    }
+  };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [code, currentIndex]);
+  const handleBackspace = () => {
+    const newCode = [...code];
+    if (currentIndex === 5 && code[5] !== '') {
+      newCode[5] = '';
+    } else if (currentIndex > 0) {
+      newCode[currentIndex - 1] = '';
+      setCurrentIndex(prev => Math.max(prev - 1, 0));
+    }
+    setCode(newCode);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      handleBackspace();
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value) {
+      handleInput(value[value.length - 1]);
+    }
+    // Clear the input for next character
+    e.target.value = '';
+  };
+
+  const focusInput = () => {
+    hiddenInputRef.current?.focus();
+  };
 
   return (
-    <div className="flex gap-2">
-      {code.map((char, index) => (
-        <div
-          key={index}
-          ref={el => {
-            if (el) inputRefs.current[index] = el;
-          }}
-          className={`w-[36px] h-[48px] bg-[#567980] flex items-center justify-center text-white text-2xl font-bold
-            ${index === currentIndex ? 'border-2 border-yellow-400' : ''}`}
-        >
-          {char}
-        </div>
-      ))}
+    <div className="relative" onClick={focusInput}>
+      <input
+        ref={hiddenInputRef}
+        type="text"
+        inputMode="text"
+        autoComplete="off"
+        autoCapitalize="characters"
+        className="opacity-0 absolute top-0 left-0 w-px h-px"
+        onKeyDown={handleKeyDown}
+        onChange={handleChange}
+      />
+      <div className="flex gap-2">
+        {code.map((char, index) => (
+          <div
+            key={index}
+            className={`w-[36px] h-[48px] bg-[#567980] flex items-center justify-center text-white text-2xl font-bold
+              ${index === currentIndex ? 'border-2 border-yellow-400' : ''}`}
+          >
+            {char}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
 
 function UserDataFetcher() {
   const router = useRouter();
