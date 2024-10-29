@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
         return (
           <motion.div
             key={item.name}
-            className="w-full flex justify-center"
+            className="w-[120%] flex justify-center"
             variants={itemVariants}
             initial="inactive"
             animate={isActive ? "active" : "inactive"}
@@ -52,14 +52,14 @@ const Footer: React.FC = () => {
             <Link href={item.path} className="flex items-center justify-center">
               <CartoonBox
                 width="100%"
-                height="46px"
+                height="60px"
                 backgroundColor={isActive ? "#EA443B" : "transparent"}
                 borderColor="transparent"
                 shadowColor={isActive ? "rgba(0, 0, 0, 0.5)" : "transparent"}
                 hasShadow={isActive}
                 tilted
                 hoverAnimation
-                className="min-w-12"
+                className="min-w-16"
                 contentClass="flex"
               >
                 <div

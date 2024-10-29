@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 
-// Variants for the main container
+// Existing variants remain the same
 const containerVariants = {
   initial: { opacity: 0, scale: 0.8 },
   animate: { opacity: 1, scale: 1, transition: { duration: 0.6 } },
   exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
 };
 
-// Variants for the effects (explosion)
 const effectVariants = {
   initial: { opacity: 0, scale: 0 },
   animate: {
@@ -23,9 +22,21 @@ const effectVariants = {
   },
 };
 
-
 const tapVariants = {
   tap: { scale: 0.95, transition: { duration: 0.1 } },
+};
+
+// New star animation variant
+const starAnimationVariants = {
+  initial: { scale: 1, rotate: 0 },
+  animate: {
+    scale: [1, 1.2, 1],
+    rotate: [0, 15, -15, 0],
+    transition: {
+      duration: 0.4,
+      ease: "easeInOut",
+    },
+  },
 };
 
 const plusOneVariants = {
@@ -40,6 +51,8 @@ const Content: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
   const [pendingSave, setPendingSave] = useState(false);
+  const [starAnimate, setStarAnimate] = useState(false);
+
 
   // Function to save to database
   const saveToDatabase = async (earnedAmount: number) => {
@@ -73,7 +86,6 @@ const Content: React.FC = () => {
     }
   };
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
@@ -86,17 +98,18 @@ const Content: React.FC = () => {
     const touches = event.touches.length;
     const containerRect = containerRef.current?.getBoundingClientRect();
     
-    if (containerRect && userData && mount > 0) { // Add mount check
+    if (containerRect && userData && mount > 0) {
+      // Trigger star animation
+      setStarAnimate(true);
+      setTimeout(() => setStarAnimate(false), 400);
+
+      // ... rest of the existing handleTap implementation
       const x = event.touches[0].clientX - containerRect.left;
       const y = event.touches[0].clientY - containerRect.top;
 
-      // Calculate earnings
       const earnedAmount = touches * userData.earnPerTap;
-
-      // Update local earnings state
       setEarnings((prevEarnings) => prevEarnings + earnedAmount);
 
-      // Update userData
       setUserData({
         ...userData,
         balance: userData.balance + earnedAmount,
@@ -115,27 +128,22 @@ const Content: React.FC = () => {
       const newMount = Math.max(0, mount - 1);
       setMount(newMount);
 
-      // Clear existing timeout
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
 
-      // Set pending save flag
       setPendingSave(true);
 
-      // Set new timeout
       saveTimeoutRef.current = setTimeout(() => {
         saveToDatabase(earnedAmount);
       }, 500);
 
-      // Remove the plusOne after animation completes
       setTimeout(() => {
         setPlusOnes((prevPlusOnes) => prevPlusOnes.slice(touches));
       }, 1000);
     }
   }, [userData, setUserData, mount, setMount]);
 
-  // Save pending changes when component unmounts
   useEffect(() => {
     return () => {
       if (pendingSave) {
@@ -144,7 +152,6 @@ const Content: React.FC = () => {
     };
   }, [pendingSave]);
 
-  // Optional: Add visual feedback for when mount is 0
   const isDisabled = mount <= 0;
 
   return (
@@ -161,7 +168,31 @@ const Content: React.FC = () => {
         className="relative w-full max-w-md flex items-center justify-center"
         style={{ aspectRatio: "1 / 1" }}
       >
-        {/* Character Image with Tap to Earn */}
+        {/* Star Image */}
+        <motion.div
+          className="absolute bottom-4 left-4 w-36 h-36 z-50 flex justify-center items-center"
+          variants={starAnimationVariants}
+          animate={starAnimate ? "animate" : "initial"}
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src="/star.svg"
+              alt="Star"
+              fill
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              textShadow: '2px 2px 0px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <p className="text-4xl font-bold text-white select-none">+1</p>
+          </div>
+        </motion.div>
+
+        {/* Existing Character Image and other elements */}
         <motion.div
           variants={tapVariants}
           whileTap="tap"
@@ -178,8 +209,8 @@ const Content: React.FC = () => {
           />
         </motion.div>
 
-        {/* Animated +1 effects */}
-        <AnimatePresence>
+        {/* Existing Animated +1 effects */}
+        {/*<AnimatePresence>
           {plusOnes.map((plusOne) => (
             <motion.div
               key={plusOne.id}
@@ -193,9 +224,9 @@ const Content: React.FC = () => {
               +1
             </motion.div>
           ))}
-        </AnimatePresence>
+        </AnimatePresence>*/}
 
-        {/* Effect Images with Explosion Effect */}
+        {/* Existing Effect Images */}
         <motion.div
           className="absolute -top-2 left-[65%] w-[15%] h-16 z-50 hidden sm:block"
           variants={effectVariants}

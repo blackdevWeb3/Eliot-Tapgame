@@ -1,94 +1,90 @@
-import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import CartoonBox from "../Common/CartoonBox";
 import Image from "next/image";
+import { useState } from "react";
+import { useUser } from "@/contexts/UserContext";
+import { useSnackbar } from 'notistack';
 
-// Mock dos itens da loja
-const shopItemsMock = [
+export interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  baseIncrease: number;
+  baseCost: number;
+  icon: string;
+  type: ShopItemType;
+  maxLevel: number;
+}
+// Change from string union to enum
+export enum ShopItemType {
+  TAP_STRENGTH = 0,
+  RECOVER_SPEED = 1,
+  ENERGY_LEVEL = 2
+}
+
+export interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  baseIncrease: number;
+  baseCost: number;
+  icon: string;
+  type: ShopItemType;  // Now using the enum
+  maxLevel: number;
+}
+
+// Now UserItems can be indexed by number
+export type UserItems = number[];  // Simple array of numbers
+
+export interface User {
+  _id: string;
+  t_id: string;
+  t_name: string;
+  balance: number;
+  totalEarned: number;
+  earnPerTap: number;
+  energy: number;
+  invitees: string[];
+  isPremium: boolean;
+  items: UserItems;
+  referalLink: string;
+  last_login_timestamp: string;
+}
+
+export const SHOP_ITEMS: ShopItem[] = [
   {
-    id: 1,
-    name: "Health up",
-    description: "Gives you extra HP at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/heart-icon.svg",
-    current: 2,
-    max: 3,
+    id: 'tapStrength',
+    name: 'Tap Strength',
+    description: 'Increases earnings per tap by 1',
+    baseIncrease: 1,
+    baseCost: 2000,
+    icon: '/assets/Shop/sword-icon.svg',
+    type: ShopItemType.TAP_STRENGTH,  // Using enum value
+    maxLevel: 10
   },
   {
-    id: 2,
-    name: "Attack up",
-    description: "Gives you extra attack at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/sword-icon.svg",
-    current: 2,
-    max: 3,
+    id: 'recoverSpeed',
+    name: 'Recover Speed',
+    description: 'Increases energy recovery speed by 1',
+    baseIncrease: 1,
+    baseCost: 2000,
+    icon: '/assets/Shop/heart-icon.svg',
+    type: ShopItemType.RECOVER_SPEED,  // Using enum value
+    maxLevel: 10
   },
   {
-    id: 3,
-    name: "Defense up",
-    description: "Gives you extra defense at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/shield-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 4,
-    name: "Health up",
-    description: "Gives you extra HP at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/heart-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 5,
-    name: "Attack up",
-    description: "Gives you extra attack at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/sword-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 6,
-    name: "Defense up",
-    description: "Gives you extra defense at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/shield-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 7,
-    name: "Health up",
-    description: "Gives you extra HP at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/heart-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 8,
-    name: "Attack up",
-    description: "Gives you extra attack at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/sword-icon.svg",
-    current: 2,
-    max: 3,
-  },
-  {
-    id: 9,
-    name: "Defense up",
-    description: "Gives you extra defense at the start of the match",
-    cost: 20,
-    icon: "/assets/Shop/shield-icon.svg",
-    current: 2,
-    max: 3,
-  },
+    id: 'energyLevel',
+    name: 'Energy Level',
+    description: 'Increases max energy by 500',
+    baseIncrease: 500,
+    baseCost: 2000,
+    icon: '/assets/Shop/shield-icon.svg',
+    type: ShopItemType.ENERGY_LEVEL,  // Using enum value
+    maxLevel: 10
+  }
 ];
 
-// Variants para animação de entrada e saída
+
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -106,52 +102,105 @@ const itemVariants = {
 };
 
 const Content: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [tableHeight, setTableHeight] = useState(0);
+  const { userData, setUserData } = useUser();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const { enqueueSnackbar } = useSnackbar();
 
-  // Lógica para calcular dinamicamente a altura disponível
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0]) {
-        const { height } = entries[0].contentRect;
-        const availableHeight = height - 200; // Ajuste o valor conforme necessário
-        setTableHeight(availableHeight);
-      }
-    });
+  const calculateCost = (basePrice: number, currentLevel: number) => {
+    return Math.floor(basePrice * Math.pow(1.2, currentLevel));
+  };
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+  const getCurrentLevel = (itemType: ShopItemType): number => {
+    if (!userData?.items) return 0;
+    return userData.items[itemType] || 0;
+  };
+
+  // New function to get current status value
+  const getCurrentStatus = (itemType: ShopItemType): string => {
+    if (!userData) return '0';
+    
+    switch (itemType) {
+      case ShopItemType.TAP_STRENGTH:
+        return `${userData.earnPerTap}/tap`;
+      case ShopItemType.RECOVER_SPEED:
+        // Assuming base recovery is 1 and each level adds 1
+        return `${1 + getCurrentLevel(ShopItemType.RECOVER_SPEED)}/sec`;
+      case ShopItemType.ENERGY_LEVEL:
+        // Base energy 1000 + (500 per level)
+        const maxEnergy = 1000 + (getCurrentLevel(ShopItemType.ENERGY_LEVEL) * 500);
+        return `${userData.energy}/${maxEnergy}`;
+      default:
+        return '0';
+    }
+  };
+
+  const handlePurchase = async (item: ShopItem) => {
+    if (!userData) {
+      enqueueSnackbar('User data not available', { variant: 'error' });
+      return;
     }
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
+    const currentLevel = getCurrentLevel(item.type);
+    const cost = calculateCost(item.baseCost, currentLevel);
+
+    if (currentLevel >= item.maxLevel) {
+      enqueueSnackbar('Already at max level', { variant: 'error' });
+      return;
+    }
+
+    if (userData.balance < cost) {
+      enqueueSnackbar('Insufficient balance', { variant: 'error' });
+      return;
+    }
+
+    setIsLoading(item.id);
+    try {
+      const response = await fetch('/api/shop/purchase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userData?.t_id,
+          itemType: item.type,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to purchase item');
+      }
+
+      const data = await response.json();
+      setUserData(data.user);
+      enqueueSnackbar(`Successfully upgraded ${item.name}!`, { variant: 'success' });
+    } catch (error) {
+      enqueueSnackbar((error as Error).message || 'Failed to purchase item', { variant: 'error' });
+    } finally {
+      setIsLoading(null);
+    }
+  };
 
   return (
     <motion.div
       className="relative h-[calc(100vh-6rem)] bg-[#1B2F31] mx-8 my-4 border-2 border-black shadow-lg text-white overflow-hidden"
-      ref={containerRef}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       exit="exit"
     >
-      {/* Cabeçalho da loja */}
+      {/* Header section remains the same */}
+      {/* Header */}
       <div className="sm:mb-6 p-4">
         <div className="mb-4 flex items-center gap-x-2">
           <Image src="/assets/Shop/shop-icon.svg" alt="Shop Icon" width={32} height={32} className="sm:w-12 sm:h-12" />
           <div className="flex flex-col">
-            <h1 className="text-md sm:text-2xl font-semibold flex items-center gap-2">
-              Shop
-            </h1>
-            <p className="text-xs sm:text-md text-gray-400">
-              Buy Boosts from here
-            </p>
+            <h1 className="text-md sm:text-2xl font-semibold">Shop</h1>
+            <p className="text-xs sm:text-md text-gray-400">Upgrade your tapping power</p>
           </div>
         </div>
 
-        {/* Pontos e botão "Get more pts" */}
+        {/* Balance display */}
         <div className="flex gap-4">
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -164,96 +213,99 @@ const Content: React.FC = () => {
               contentClass="flex items-center ml-4"
             >
               <Image src="/assets/Shop/coin-icon.svg" alt="Coin Icon" width={20} height={20} className="mr-1" />
-              <span className="text-sm sm:text-lg font-normal">10,000pts</span>
-            </CartoonBox>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            className="w-full max-w-[8rem] cursor-pointer transition-transform"
-          >
-            <CartoonBox
-              height={"2rem"}
-              width={"auto"}
-              backgroundColor="#569CAA"
-              borderColor="#000000"
-              contentClass="flex items-center ml-4"
-            >
-              <Image src="/assets/Shop/add-icon.svg" alt="Get More Icon" width={20} height={20} className="mr-1" />
-              <span className="text-sm sm:text-lg font-normal">
-                Get more pts
-              </span>
+              <span className="text-sm sm:text-lg font-normal">{userData?.balance || 0}pts</span>
             </CartoonBox>
           </motion.div>
         </div>
       </div>
-
-      {/* Lista de itens da loja */}
+      
       <motion.div
         className="overflow-y-auto scrollable max-h-full pb-32 sm:pb-36 md:pb-40 p-4 flex flex-col space-y-6"
         variants={containerVariants}
-        animate="show"
       >
-        {shopItemsMock.map((item) => (
-          <motion.div
-            key={item.id}
-            className="relative"
-            variants={itemVariants}
-            whileHover="hover"
-          >
-            <CartoonBox
-              width="100%"
-              height={"6rem"}
-              backgroundColor="#335056"
-              borderColor="#569CAA"
-              className="cursor-pointer"
-              contentClass="flex items-center p-4"
-            >
-              {/* Ícone do item à direita */}
-              <Image
-                src={item.icon}
-                alt={`${item.name} Icon`}
-                width={80}
-                height={80}
-                className="absolute -right-3 top-2 sm:top-1/4 transform -translate-y-1/2 w-12 h-12 sm:w-20 sm:h-20"
-              />
+        {SHOP_ITEMS.map((item) => {
+          const currentLevel = getCurrentLevel(item.type);
+          const cost = calculateCost(item.baseCost, currentLevel);
+          const isMaxLevel = currentLevel >= item.maxLevel;
+          const currentStatus = getCurrentStatus(item.type);
 
-              {/* Informações do item */}
-              <div className="w-full flex flex-col">
-                <span className="text-md sm:text-lg font-normal leading-none">
-                  {item.name} ({item.current}/{item.max})
-                </span>
-                <span className="text-xs sm:text-sm text-[#FAB757] leading-none mb-2">
-                  {item.description}
-                </span>
-                <div className="flex items-center gap-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    className="bg-[#569CAA] flex items-center gap-x-1 px-2 py-1 transition-transform"
-                  >
-                    <span className="font-light text-sm">
-                      BUY ({item.cost}pts)
+          return (
+            <motion.div
+              key={item.id}
+              className="relative"
+              variants={itemVariants}
+              whileHover="hover"
+            >
+              <CartoonBox
+                width="100%"
+                height={"6rem"}
+                backgroundColor="#335056"
+                borderColor="#569CAA"
+                className="cursor-pointer"
+                contentClass="flex items-center p-4"
+              >
+                <Image
+                  src={item.icon}
+                  alt={`${item.name} Icon`}
+                  width={80}
+                  height={80}
+                  className="absolute -right-3 top-2 sm:top-1/4 transform -translate-y-1/2 w-12 h-12 sm:w-20 sm:h-20"
+                />
+
+                <div className="w-full flex flex-col">
+                  <div className="flex justify-between items-center pr-16">
+                    <span className="text-md sm:text-lg font-normal leading-none">
+                      {item.name}
                     </span>
-                    <Image
-                      src="/assets/Shop/get-more-icon.svg"
-                      alt="Get More Icon"
-                      width={16}
-                      height={16}
-                    />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    className="bg-[#516A6F] flex items-center gap-x-1 px-2 py-1 transition-transform"
-                  >
-                    <span className="font-light text-sm text-gray-300">
-                      You own: {item.current}/{item.max}
-                    </span>
-                  </motion.button>
+                  </div>
+                  <span className="text-xs sm:text-sm text-[#FAB757] leading-none mb-2">
+                    {item.description}
+                  </span>
+                  <div className="flex items-center gap-x-2">
+                    {!isMaxLevel ? (
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        className={`bg-[#569CAA] flex items-center gap-x-1 px-2 py-1 transition-transform ${
+                          isLoading === item.id || (userData?.balance || 0) < cost
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        onClick={() => handlePurchase(item)}
+                        disabled={isLoading === item.id || (userData?.balance || 0) < cost}
+                      >
+                        <span className="font-light text-sm">
+                          {isLoading === item.id ? 'Buying...' : `BUY (${cost}pts)`}
+                        </span>
+                        <Image
+                          src="/assets/Shop/get-more-icon.svg"
+                          alt="Get More Icon"
+                          width={16}
+                          height={16}
+                        />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        className="bg-[#516A6F] flex items-center gap-x-1 px-2 py-1"
+                        disabled
+                      >
+                        <span className="font-light text-sm text-gray-300">
+                          MAX LEVEL
+                        </span>
+                      </motion.button>
+                    )}
+                    <motion.button
+                      className="bg-[#516A6F] flex items-center gap-x-1 px-2 py-1"
+                    >
+                      <span className="font-light text-sm text-gray-300">
+                        Level {currentLevel}/{item.maxLevel}
+                      </span>
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-            </CartoonBox>
-          </motion.div>
-        ))}
+              </CartoonBox>
+            </motion.div>
+          );
+        })}
       </motion.div>
     </motion.div>
   );

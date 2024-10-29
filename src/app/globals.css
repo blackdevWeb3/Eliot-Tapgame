@@ -19,7 +19,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Agency FB', Arial, sans-serif;
 }
 
 @font-face {
@@ -37,9 +37,19 @@ body {
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Agency FB Bold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Agency FB Bold'), url('/fonts/AGENCYB.woff') format('woff');
+}
 
 :root {
   --font-geist-sans: 'Geist Sans', sans-serif;
   --font-geist-mono: 'Geist Mono', monospace;
   font-family: 'Geist Mono';
+}
+
+.font-teko {
+  font-family: 'Agency FB Bold';
 }
