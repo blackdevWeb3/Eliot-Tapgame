@@ -169,7 +169,7 @@ const Content: React.FC = () => {
         style={{ aspectRatio: "1 / 1" }}
       >
         {/* Star Image */}
-        <motion.div
+        {/*<motion.div
           className="absolute bottom-4 left-4 w-36 h-36 z-50 flex justify-center items-center"
           variants={starAnimationVariants}
           animate={starAnimate ? "animate" : "initial"}
@@ -190,7 +190,7 @@ const Content: React.FC = () => {
           >
             <p className="text-4xl font-bold text-white select-none">+1</p>
           </div>
-        </motion.div>
+        </motion.div>*/}
 
         {/* Existing Character Image and other elements */}
         <motion.div
@@ -210,7 +210,7 @@ const Content: React.FC = () => {
         </motion.div>
 
         {/* Existing Animated +1 effects */}
-        {/*<AnimatePresence>
+        {<AnimatePresence>
           {plusOnes.map((plusOne) => (
             <motion.div
               key={plusOne.id}
@@ -224,7 +224,7 @@ const Content: React.FC = () => {
               +1
             </motion.div>
           ))}
-        </AnimatePresence>*/}
+        </AnimatePresence>}
 
         {/* Existing Effect Images */}
         <motion.div

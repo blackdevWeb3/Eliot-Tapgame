@@ -4,7 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { QRCodeSVG } from 'qrcode.react';
 
+// ... (InviteCodeInput component remains the same)
 function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) => void }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,7 +52,6 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
     if (value) {
       handleInput(value[value.length - 1]);
     }
-    // Clear the input for next character
     e.target.value = '';
   };
 
@@ -85,7 +86,7 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
   );
 }
 
-
+// ... (UserDataFetcher component remains the same)
 function UserDataFetcher() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -120,11 +121,19 @@ function UserDataFetcher() {
 
   return null;
 }
+
 export default function Page() {
   const router = useRouter();
   const [isComplete, setIsComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  
+  const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
 
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+  }, []);
+  
   const handleCodeComplete = (code: string) => {
     setIsComplete(true);
   };
@@ -133,9 +142,7 @@ export default function Page() {
     if (!isComplete || isLoading) return;
     
     setIsLoading(true);
-    // Add any API calls here if needed
     try {
-      // Simulate API call with small delay
       await new Promise(resolve => setTimeout(resolve, 500));
       router.push('/play');
     } catch (error) {
@@ -143,6 +150,23 @@ export default function Page() {
       setIsLoading(false);
     }
   };
+
+  if (!isMobile) {
+    return (
+      <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center text-white">
+        <h1 className="text-2xl mb-8">Please run the app on mobile device</h1>
+        <div className="bg-white p-4 rounded-lg">
+          <QRCodeSVG
+            value="https://t.me/chuckletapbot"
+            size={200}
+            level="H"
+            includeMargin={false}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-[500px] h-full flex items-center justify-center p-4">
       <div className="relative w-full">
