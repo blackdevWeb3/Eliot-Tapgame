@@ -1,16 +1,24 @@
-interface TelegramWebApps {
-  WebApp: {
-    ready(): void;
-    expand(): void;
-    disableVerticalSwipes(): void;
-    isVerticalSwipesEnabled: boolean;
-    setHeaderColor: (color: string) => void;
-  }
-}
-
 declare global {
   interface Window {
-    Telegram?: TelegramWebApps;
+    Telegram?: {
+      WebApp: {
+        initData: string
+        initDataUnsafe: {
+          start_param?: string
+          user?: {
+            id: number
+            username?: string
+            photo_url?: string
+          }
+          [key: string]: any
+        }
+        setHeaderColor: (color: string) => void
+        ready: () => void
+        expand: () => void
+        disableVerticalSwipes: () => void
+        isVerticalSwipesEnabled: boolean
+      }
+    }
   }
 }
 
