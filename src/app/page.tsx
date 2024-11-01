@@ -130,6 +130,12 @@ export default function Page() {
 
   useEffect(() => {
     setIsMobile(isMobileDevice());
+    
+    // Expand the WebApp to full screen when it loads
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.ready();
+    }
   }, []);
   
   const handleCodeComplete = (code: string) => {
@@ -166,8 +172,8 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full min-h-[500px] h-full flex items-center justify-center p-4">
-      <div className="relative w-full">
+    <div className="w-full min-h-screen h-full flex items-center justify-center p-4 bg-[#1C1C1E]">
+      <div className="relative w-full max-w-md mx-auto">
         <div 
           className="absolute inset-0 w-full bg-[#569CAA] border-[3px] border-black"
           style={{
