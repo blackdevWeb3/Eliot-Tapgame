@@ -1,31 +1,45 @@
-// app/api/tasks/get-user-tasks/route.ts
-import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    // Get userId from searchParams
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const body = await request.json();
+    const { taskId, userId, points } = body;
 
-    if (!userId) {
+    if (!taskId || !userId || !points) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
     const { db } = await connectToDatabase();
 
-    const completedTasks = await db
-      .collection('completed_tasks')
-      .find({ userId: new ObjectId(userId) })
-      .toArray();
+    // Add task to completed_tasks collection
+    await db.collection('completed_tasks').insertOne({
+      taskId,
+      userId: new ObjectId(userId),
+      completedAt: new Date(),
+    });
 
-    return NextResponse.json(completedTasks, { status: 200 });
+    // Update user's balance
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $inc: { 
+          balance: points,
+          totalEarned: points 
+        } 
+      }
+    );
+
+    return NextResponse.json(
+      { message: 'Task claimed successfully' },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Error getting tasks:', error);
+    console.error('Error claiming task:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 
-// ... (InviteCodeInput component remains the same)
 function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) => void }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -86,7 +85,6 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
   );
 }
 
-// ... (UserDataFetcher component remains the same)
 function UserDataFetcher() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -154,7 +152,7 @@ export default function Page() {
   if (!isMobile) {
     return (
       <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center text-white">
-        <h1 className="text-2xl mb-8">Please run the app on mobile device</h1>
+        <h1 className="text-2xl mb-8 text-white">Please run the app on mobile device</h1>
         <div className="bg-white p-4 rounded-lg">
           <QRCodeSVG
             value="https://t.me/chuckletapbot"
@@ -224,11 +222,11 @@ export default function Page() {
               className="object-contain"
             />
             
-            <h1 className="mt-[60px] text-[24px] font-bold leading-[29.21px]">
+            <h1 className="mt-[60px] text-[24px] font-bold leading-[29.21px] text-black">
               Early Access Airdrop
             </h1>
             
-            <p className="mt-3 text-base font-normal leading-[18.95px]">
+            <p className="mt-3 text-base font-normal leading-[18.95px] text-black">
               Enter your invite code to claim your airdrop
             </p>
 
@@ -254,7 +252,7 @@ export default function Page() {
 
             <button 
               onClick={() => router.back()} 
-              className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity"
+              className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity text-black"
             >
               Cancel
             </button>

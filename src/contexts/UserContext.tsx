@@ -2,7 +2,15 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { SnackbarProvider } from 'notistack';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { clusterApiUrl } from '@solana/web3.js';
+import { useMemo } from 'react';
 
+// Import wallet adapter CSS
+require('@solana/wallet-adapter-react-ui/styles.css');
 const manifestUrl = '/tonconnect-manifest.json';
 
 interface UserData {
@@ -51,6 +59,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
     return 500;
   });
+  const network = WalletAdapterNetwork.Mainnet;
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 
   useEffect(() => {
     if (userData) {
@@ -106,13 +117,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [userData]);
 
   return (
-    <TonConnectUIProvider manifestUrl={manifestUrl}>
-      <UserContext.Provider value={{ userData, setUserData, mount, setMount }}>
-        <SnackbarProvider>
-          {children}
-        </SnackbarProvider>
-      </UserContext.Provider>
-    </TonConnectUIProvider>
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <UserContext.Provider value={{ userData, setUserData, mount, setMount }}>
+            <SnackbarProvider>
+              {children}
+            </SnackbarProvider>
+          </UserContext.Provider>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 }
 

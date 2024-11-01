@@ -4,7 +4,7 @@ import CartoonBox from "../Common/CartoonBox";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 
-// Animation variants
+// Animation variants remain the same...
 const headerVariants = {
   initial: { opacity: 0, y: -20 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -40,15 +40,21 @@ const formatNumber = (num: number) => {
 
 const Header: React.FC = () => {
   const { userData, setUserData, mount } = useUser();
-  const points = userData?.balance || 0;
+  
+  // Ensure we have a default value for points
+  const points = userData?.balance ?? 0;
   const level = calculateLevel(points);
   const progress = calculateProgress(points);
   
   // Calculate points needed for next level
   const pointsPerLevel = 5000;
   const nextLevelPoints = (level + 1) * pointsPerLevel;
-  const currentLevelPoints = level * pointsPerLevel;
   const pointsNeeded = nextLevelPoints - points;
+
+  // Pre-format the points text to ensure consistency
+  const pointsText = level < 100 
+    ? `${formatNumber(pointsNeeded)} points to Level ${level + 1}`
+    : 'Max Level Reached!';
 
   return (
     <motion.div
@@ -78,10 +84,7 @@ const Header: React.FC = () => {
             </p>
           </div>
           <p className="text-sm font-semibold text-gray-500">
-            {level < 100 
-              ? `${formatNumber(pointsNeeded)} points to Level ${level + 1}`
-              : 'Max Level Reached!'
-            }
+            {pointsText}
           </p>
           
           {/* Progress Bar */}

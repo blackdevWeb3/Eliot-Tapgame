@@ -1,45 +1,18 @@
-'use client'
 import React, { useState, useEffect } from "react";
 import CartoonBox from "@/components/Common/CartoonBox";
 import Header from "@/components/Header/Header";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 import { useSnackbar } from "notistack";
-import { useTonConnectUI } from '@tonconnect/ui-react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 const Content: React.FC = () => {
   const { userData } = useUser();
   const { enqueueSnackbar } = useSnackbar();
   const [copying, setCopying] = useState(false);
-  const [tonConnectUI] = useTonConnectUI();
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Check wallet connection status
-  useEffect(() => {
-    const checkConnection = async () => {
-      const connected = await tonConnectUI.connected;
-      setIsConnected(connected);
-    };
-    
-    checkConnection();
-    
-    // Listen for wallet events
-    const unsubscribe = tonConnectUI.onStatusChange(
-      (wallet) => {
-        setIsConnected(!!wallet);
-        if (wallet) {
-          enqueueSnackbar('Wallet connected successfully!', {
-            variant: 'success',
-            anchorOrigin: { vertical: 'top', horizontal: 'center' },
-          });
-        }
-      }
-    );
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [tonConnectUI, enqueueSnackbar]);
+  const { connected, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
 
   // Function to copy referral link
   const copyToClipboard = async () => {
@@ -77,17 +50,17 @@ const Content: React.FC = () => {
     }
   };
 
-  // Function to handle wallet connection
-  const handleConnectWallet = async () => {
+  // Handle wallet connection
+  const handleWalletClick = async () => {
     try {
-      if (!isConnected) {
-        await tonConnectUI.openModal();
-      } else {
-        await tonConnectUI.disconnect();
+      if (connected) {
+        await disconnect();
         enqueueSnackbar('Wallet disconnected', {
           variant: 'info',
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
         });
+      } else {
+        setVisible(true);
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
@@ -173,20 +146,20 @@ const Content: React.FC = () => {
               backgroundColor="#000"
               borderColor="transparent"
               className={`w-full cursor-pointer transition-transform duration-200 ${
-                isConnected ? 'bg-opacity-80' : ''
+                connected ? 'bg-opacity-80' : ''
               } hover:scale-[1.02] active:scale-[0.98]`}
-              onClick={handleConnectWallet}
+              onClick={handleWalletClick}
             >
               <div className="sm:py-2 flex items-center justify-center gap-2">
                 <span className="text-white text-md mt-1">
-                  {isConnected ? 'Disconnect wallet' : 'Connect wallet'}
+                  {connected ? 'Disconnect wallet' : 'Connect wallet'}
                 </span>
                 <Image 
                   src="/assets/Profile/wallet-icon.svg" 
                   alt="Wallet Icon" 
                   width={20} 
                   height={20} 
-                  className={`w-5 h-5 ${isConnected ? 'opacity-50' : ''}`}
+                  className={`w-5 h-5 ${connected ? 'opacity-50' : ''}`}
                 />
               </div>
             </CartoonBox>
