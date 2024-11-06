@@ -1,51 +1,77 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import CartoonBox from "@/components/Common/CartoonBox";
 import Header from "@/components/Header/Header";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 import { useSnackbar } from "notistack";
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletName } from '@solana/wallet-adapter-wallets';
+import { 
+  DynamicContextProvider, 
+  DynamicWidget, 
+  useDynamicContext 
+} from "@dynamic-labs/sdk-react";
+import { SolanaWalletConnector } from "@dynamic-labs/solana";
 
-const Content: React.FC = () => {
-  const { userData } = useUser();
+const WalletButton = () => {
+  const { primaryWallet, handleLogOut } = useDynamicContext();
   const { enqueueSnackbar } = useSnackbar();
-  const [copying, setCopying] = useState(false);
-  const { connected, disconnect, select, wallet } = useWallet();
-  const { setVisible } = useWalletModal();
 
-  useEffect(() => {
-    // Auto-select Phantom wallet
-    if (!wallet?.adapter.name) {
-      select(PhantomWalletName);
-    }
-  }, [wallet, select]);
-
-  // Handle wallet connection
   const handleWalletClick = async () => {
     try {
-      if (connected) {
-        await disconnect();
+      if (primaryWallet) {
+        await handleLogOut();
         enqueueSnackbar('Wallet disconnected', {
           variant: 'info',
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
         });
-      } else {
-        // For Telegram Mini App, we just need to show the wallet modal
-        setVisible(true);
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
-      enqueueSnackbar('Failed to connect wallet', {
+      enqueueSnackbar('Failed to disconnect wallet', {
         variant: 'error',
         anchorOrigin: { vertical: 'top', horizontal: 'center' },
       });
     }
   };
 
-  // Function to copy referral link
+  return (
+    <CartoonBox
+      backgroundColor="#000"
+      borderColor="transparent"
+      className={`w-full cursor-pointer transition-transform duration-200 ${
+        primaryWallet ? 'bg-opacity-80' : ''
+      } hover:scale-[1.02] active:scale-[0.98]`}
+      onClick={handleWalletClick}
+    >
+      <div className="sm:py-2 flex items-center justify-center gap-2">
+        {primaryWallet ? (
+          <>
+            <span className="text-white text-md mt-1">
+              {primaryWallet.address.slice(0, 4)}...{primaryWallet.address.slice(-4)}
+            </span>
+            <span className="text-white text-md mt-1">Disconnect</span>
+          </>
+        ) : (
+          <DynamicWidget />
+        )}
+        <Image 
+          src="/assets/Profile/wallet-icon.svg" 
+          alt="Wallet Icon" 
+          width={20} 
+          height={20} 
+          className="w-5 h-5"
+        />
+      </div>
+    </CartoonBox>
+  );
+};
+
+const Content: React.FC = () => {
+  const { userData } = useUser();
+  const { enqueueSnackbar } = useSnackbar();
+  const [copying, setCopying] = useState(false);
+
+  // Copy to clipboard function remains the same
   const copyToClipboard = async () => {
     if (!userData?.referalLink || copying) return;
 
@@ -58,7 +84,6 @@ const Content: React.FC = () => {
       });
     } catch (err) {
       console.error('Failed to copy:', err);
-      // Fallback copy method
       const textarea = document.createElement('textarea');
       textarea.value = userData.referalLink;
       document.body.appendChild(textarea);
@@ -152,27 +177,7 @@ const Content: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <CartoonBox
-              backgroundColor="#000"
-              borderColor="transparent"
-              className={`w-full cursor-pointer transition-transform duration-200 ${
-                connected ? 'bg-opacity-80' : ''
-              } hover:scale-[1.02] active:scale-[0.98]`}
-              onClick={handleWalletClick}
-            >
-              <div className="sm:py-2 flex items-center justify-center gap-2">
-                <span className="text-white text-md mt-1">
-                  {connected ? 'Disconnect wallet' : 'Connect wallet'}
-                </span>
-                <Image 
-                  src="/assets/Profile/wallet-icon.svg" 
-                  alt="Wallet Icon" 
-                  width={20} 
-                  height={20} 
-                  className="w-5 h-5"
-                />
-              </div>
-            </CartoonBox>
+            <WalletButton />
           </div>
         </div>
       </div>
@@ -180,4 +185,23 @@ const Content: React.FC = () => {
   );
 };
 
-export default Content;
+const WrappedContent: React.FC = () => {
+  return (
+    <DynamicContextProvider
+      settings={{
+        environmentId: "d0e577ef-2b42-414a-b164-58496a29adbf", // Replace with your Dynamic environment ID
+        newToWeb3WalletChainMap: {
+           primary_chain: "sol", 
+           wallets: {
+               evm: "phantomevm",
+               solana: "phantom"
+           }
+        }
+      }}
+    >
+      <Content />
+    </DynamicContextProvider>
+  );
+};
+
+export default WrappedContent;
