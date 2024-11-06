@@ -121,10 +121,15 @@ function MainContent() {
 
   useEffect(() => {
     setIsMobile(isMobileDevice());
-    
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.expand();
+    if (
+      typeof window !== "undefined" &&
+      window.Telegram &&
+      window.Telegram.WebApp
+    ) {
       window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.disableVerticalSwipes();
+      window.Telegram.WebApp.isVerticalSwipesEnabled = false;
     }
   }, []);
   

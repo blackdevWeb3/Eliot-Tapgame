@@ -7,56 +7,21 @@ import { useUser } from "@/contexts/UserContext";
 import { useSnackbar } from "notistack";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletName } from '@solana/wallet-adapter-wallets';
 
 const Content: React.FC = () => {
   const { userData } = useUser();
   const { enqueueSnackbar } = useSnackbar();
   const [copying, setCopying] = useState(false);
-  const { connected, disconnect } = useWallet();
+  const { connected, disconnect, select, wallet } = useWallet();
   const { setVisible } = useWalletModal();
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Check if device is mobile
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor;
-      return /android|iPad|iPhone|iPod/i.test(userAgent);
-    };
-    setIsMobile(checkMobile());
-  }, []);
-
-  // Function to handle mobile wallet connection
-  const connectMobileWallet = async () => {
-    try {
-      // Phantom deep link URL
-      const url = `https://phantom.app/ul/browse/${window.location.href}`;
-      
-      // For iOS devices
-      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        window.location.href = `phantom://`;
-        
-        // Fallback after delay if Phantom isn't installed
-        setTimeout(() => {
-          window.location.href = 'https://phantom.app/download';
-        }, 2500);
-      } 
-      // For Android devices
-      else if (/android/i.test(navigator.userAgent)) {
-        window.location.href = url;
-        
-        // Fallback after delay if Phantom isn't installed
-        setTimeout(() => {
-          window.location.href = 'https://phantom.app/download';
-        }, 2500);
-      }
-    } catch (error) {
-      console.error('Mobile wallet connection error:', error);
-      enqueueSnackbar('Failed to connect mobile wallet', {
-        variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
+    // Auto-select Phantom wallet
+    if (!wallet?.adapter.name) {
+      select(PhantomWalletName);
     }
-  };
+  }, [wallet, select]);
 
   // Handle wallet connection
   const handleWalletClick = async () => {
@@ -68,11 +33,8 @@ const Content: React.FC = () => {
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
         });
       } else {
-        if (isMobile) {
-          connectMobileWallet();
-        } else {
-          setVisible(true);
-        }
+        // For Telegram Mini App, we just need to show the wallet modal
+        setVisible(true);
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
