@@ -85,8 +85,13 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
   );
 }
 
-function UserDataFetcher() {
+export default function Page() {
   const router = useRouter();
+  const [isComplete, setIsComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  
+  const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
   const searchParams = useSearchParams();
   const { setUserData } = useUser();
 
@@ -119,17 +124,6 @@ function UserDataFetcher() {
 
     fetchUserData();
   }, [searchParams, router, setUserData]);
-
-  return null;
-}
-
-export default function Page() {
-  const router = useRouter();
-  const [isComplete, setIsComplete] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  
-  const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
 
   useEffect(() => {
     setIsMobile(isMobileDevice());
