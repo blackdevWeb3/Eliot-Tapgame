@@ -111,7 +111,6 @@ function MainContent() {
         }
         const userData = await response.json();
         setUserData(userData);
-        router.push("/play");
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
