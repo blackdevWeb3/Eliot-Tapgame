@@ -169,99 +169,105 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full min-h-screen h-full flex items-center justify-center p-4 bg-[#1C1C1E]">
-      <div className="relative w-full max-w-md mx-auto">
-        <div 
-          className="absolute inset-0 w-full bg-[#569CAA] border-[3px] border-black"
-          style={{
-            transform: 'rotate(-4deg) translate(4px, -24px)',
-          }}
-        />
-        <div 
-          className="relative w-full min-h-[500px] bg-[#B6DCE4] border-[3px] border-black"
-          style={{
-            backgroundImage: 'url(/frame.png)',
-            backgroundPosition: 'top center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
-          {/* Background Items */}
-          <div className="absolute left-0 top-0">
-            <Image
-              src="/back/left-top.svg"
-              alt="Left Top Decoration"
-              width={150}
-              height={150}
-              className="object-contain"
-            />
-          </div>
-          <div className="absolute right-0 top-0">
-            <Image
-              src="/back/right-top.svg"
-              alt="Right Top Decoration"
-              width={70}
-              height={70}
-              className="object-contain"
-            />
-          </div>
-          <div className="absolute left-0 bottom-0">
-            <Image
-              src="/back/left-bottom.svg"
-              alt="Left Bottom Decoration"
-              width={150}
-              height={150}
-              className="object-contain"
-            />
-          </div>
-
-          {/* Content */}
-          <div className="flex flex-col items-center pt-5">
-            <Image
-              src="/back/icon.svg"
-              alt="Airdrop"
-              width={50}
-              height={50}
-              className="object-contain"
-            />
-            
-            <h1 className="mt-[60px] text-[24px] font-bold leading-[29.21px] text-black">
-              Early Access Airdrop
-            </h1>
-            
-            <p className="mt-3 text-base font-normal leading-[18.95px] text-black">
-              Enter your invite code to claim your airdrop
-            </p>
-
-            <div className="mt-4">
-              <InviteCodeInput onCodeComplete={handleCodeComplete} />
+    <Suspense fallback={
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900" />
+      </div>
+    }>
+      <div className="w-full min-h-screen h-full flex items-center justify-center p-4 bg-[#1C1C1E]">
+        <div className="relative w-full max-w-md mx-auto">
+          <div 
+            className="absolute inset-0 w-full bg-[#569CAA] border-[3px] border-black"
+            style={{
+              transform: 'rotate(-4deg) translate(4px, -24px)',
+            }}
+          />
+          <div 
+            className="relative w-full min-h-[500px] bg-[#B6DCE4] border-[3px] border-black"
+            style={{
+              backgroundImage: 'url(/frame.png)',
+              backgroundPosition: 'top center',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            {/* Background Items */}
+            <div className="absolute left-0 top-0">
+              <Image
+                src="/back/left-top.svg"
+                alt="Left Top Decoration"
+                width={150}
+                height={150}
+                className="object-contain"
+              />
+            </div>
+            <div className="absolute right-0 top-0">
+              <Image
+                src="/back/right-top.svg"
+                alt="Right Top Decoration"
+                width={70}
+                height={70}
+                className="object-contain"
+              />
+            </div>
+            <div className="absolute left-0 bottom-0">
+              <Image
+                src="/back/left-bottom.svg"
+                alt="Left Bottom Decoration"
+                width={150}
+                height={150}
+                className="object-contain"
+              />
             </div>
 
-            <button 
-              onClick={handleSubmit}
-              disabled={!isComplete || isLoading}
-              className={`mt-[120px] px-6 py-3 flex items-center gap-2 text-xl font-bold
-                transition-all duration-200 transform active:scale-95
-                ${isComplete 
-                  ? 'bg-[#569CAA] text-white hover:bg-[#4a8795] cursor-pointer' 
-                  : 'bg-[#8BA1A5] text-gray-300 cursor-not-allowed'
-                }
-                ${isLoading ? 'animate-pulse' : ''}
-              `}
-            >
-              {isLoading ? 'Processing...' : 'Submit'}
-              <ArrowRight size={20} />
-            </button>
+            {/* Content */}
+            <div className="flex flex-col items-center pt-5">
+              <Image
+                src="/back/icon.svg"
+                alt="Airdrop"
+                width={50}
+                height={50}
+                className="object-contain"
+              />
+              
+              <h1 className="mt-[60px] text-[24px] font-bold leading-[29.21px] text-black">
+                Early Access Airdrop
+              </h1>
+              
+              <p className="mt-3 text-base font-normal leading-[18.95px] text-black">
+                Enter your invite code to claim your airdrop
+              </p>
 
-            <button 
-              onClick={() => router.back()} 
-              className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity text-black"
-            >
-              Cancel
-            </button>
+              <div className="mt-4">
+                <InviteCodeInput onCodeComplete={handleCodeComplete} />
+              </div>
+
+              <button 
+                onClick={handleSubmit}
+                disabled={!isComplete || isLoading}
+                className={`mt-[120px] px-6 py-3 flex items-center gap-2 text-xl font-bold
+                  transition-all duration-200 transform active:scale-95
+                  ${isComplete 
+                    ? 'bg-[#569CAA] text-white hover:bg-[#4a8795] cursor-pointer' 
+                    : 'bg-[#8BA1A5] text-gray-300 cursor-not-allowed'
+                  }
+                  ${isLoading ? 'animate-pulse' : ''}
+                `}
+              >
+                {isLoading ? 'Processing...' : 'Submit'}
+                <ArrowRight size={20} />
+              </button>
+
+              <button 
+                onClick={() => router.back()} 
+                className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity text-black"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Suspense>
   );
 }
