@@ -98,12 +98,15 @@ function UserDataFetcher() {
         console.error('No ID provided');
         return;
       }
+      console.log(id);
 
       try {
         const response = await fetch(`/api/user?id=${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
+
+        console.log(response);
 
         const userData = await response.json();
         console.log(userData);
