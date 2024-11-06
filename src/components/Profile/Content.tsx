@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect } from "react";
 import CartoonBox from "@/components/Common/CartoonBox";
 import Header from "@/components/Header/Header";
@@ -13,6 +14,74 @@ const Content: React.FC = () => {
   const [copying, setCopying] = useState(false);
   const { connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      return /android|iPad|iPhone|iPod/i.test(userAgent);
+    };
+    setIsMobile(checkMobile());
+  }, []);
+
+  // Function to handle mobile wallet connection
+  const connectMobileWallet = async () => {
+    try {
+      // Phantom deep link URL
+      const url = `https://phantom.app/ul/browse/${window.location.href}`;
+      
+      // For iOS devices
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = `phantom://`;
+        
+        // Fallback after delay if Phantom isn't installed
+        setTimeout(() => {
+          window.location.href = 'https://phantom.app/download';
+        }, 2500);
+      } 
+      // For Android devices
+      else if (/android/i.test(navigator.userAgent)) {
+        window.location.href = url;
+        
+        // Fallback after delay if Phantom isn't installed
+        setTimeout(() => {
+          window.location.href = 'https://phantom.app/download';
+        }, 2500);
+      }
+    } catch (error) {
+      console.error('Mobile wallet connection error:', error);
+      enqueueSnackbar('Failed to connect mobile wallet', {
+        variant: 'error',
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+    }
+  };
+
+  // Handle wallet connection
+  const handleWalletClick = async () => {
+    try {
+      if (connected) {
+        await disconnect();
+        enqueueSnackbar('Wallet disconnected', {
+          variant: 'info',
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        });
+      } else {
+        if (isMobile) {
+          connectMobileWallet();
+        } else {
+          setVisible(true);
+        }
+      }
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      enqueueSnackbar('Failed to connect wallet', {
+        variant: 'error',
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+    }
+  };
 
   // Function to copy referral link
   const copyToClipboard = async () => {
@@ -47,27 +116,6 @@ const Content: React.FC = () => {
       document.body.removeChild(textarea);
     } finally {
       setCopying(false);
-    }
-  };
-
-  // Handle wallet connection
-  const handleWalletClick = async () => {
-    try {
-      if (connected) {
-        await disconnect();
-        enqueueSnackbar('Wallet disconnected', {
-          variant: 'info',
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        });
-      } else {
-        setVisible(true);
-      }
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      enqueueSnackbar('Failed to connect wallet', {
-        variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
     }
   };
 
@@ -159,7 +207,7 @@ const Content: React.FC = () => {
                   alt="Wallet Icon" 
                   width={20} 
                   height={20} 
-                  className={`w-5 h-5 ${connected ? 'opacity-50' : ''}`}
+                  className="w-5 h-5"
                 />
               </div>
             </CartoonBox>
