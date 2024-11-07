@@ -166,7 +166,7 @@ const Content: React.FC<ContentProps> = ({ currentUser, leaderboard }) => {
                 </span>
                 <div className="flex items-center gap-x-2">
                   <Image
-                    src={currentUser.avatar_url}
+                    src={user.avatar_url}
                     alt={`${user.t_name} Avatar`}
                     width={40}
                     height={40}
