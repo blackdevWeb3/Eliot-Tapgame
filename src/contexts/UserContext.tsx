@@ -26,6 +26,7 @@ interface UserData {
   items: any[];
   referalLink: string;
   last_login_timestamp: string;
+  walletAddress: string;
 }
 
 interface UserContextType {
@@ -33,6 +34,7 @@ interface UserContextType {
   setUserData: (data: UserData | null) => void;
   mount: number;
   setMount: (value: number) => void;
+  refreshUserData: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -62,6 +64,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const network = WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch(`/api/user?id=${userData?.t_id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      const data = await response.json();
+      setUserData(data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  const refreshUserData = async () => {
+    await fetchUserData();
+  };
 
   useEffect(() => {
     if (userData) {
@@ -120,7 +139,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <UserContext.Provider value={{ userData, setUserData, mount, setMount }}>
+          <UserContext.Provider value={{ userData, setUserData, mount, setMount, refreshUserData }}>
             <SnackbarProvider>
               {children}
             </SnackbarProvider>

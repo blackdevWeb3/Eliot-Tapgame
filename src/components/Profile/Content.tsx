@@ -1,77 +1,19 @@
-'use client'
 import React, { useState } from "react";
 import CartoonBox from "@/components/Common/CartoonBox";
 import Header from "@/components/Header/Header";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 import { useSnackbar } from "notistack";
-import { 
-  DynamicContextProvider, 
-  DynamicWidget, 
-  useDynamicContext 
-} from "@dynamic-labs/sdk-react";
-import { SolanaWalletConnector } from "@dynamic-labs/solana";
-
-const WalletButton = () => {
-  const { primaryWallet, handleLogOut } = useDynamicContext();
-  const { enqueueSnackbar } = useSnackbar();
-
-  const handleWalletClick = async () => {
-    try {
-      if (primaryWallet) {
-        await handleLogOut();
-        enqueueSnackbar('Wallet disconnected', {
-          variant: 'info',
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        });
-      }
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      enqueueSnackbar('Failed to disconnect wallet', {
-        variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
-    }
-  };
-
-  return (
-    <CartoonBox
-      backgroundColor="#000"
-      borderColor="transparent"
-      className={`w-full cursor-pointer transition-transform duration-200 ${
-        primaryWallet ? 'bg-opacity-80' : ''
-      } hover:scale-[1.02] active:scale-[0.98]`}
-      onClick={handleWalletClick}
-    >
-      <div className="sm:py-2 flex items-center justify-center gap-2">
-        {primaryWallet ? (
-          <>
-            <span className="text-white text-md mt-1">
-              {primaryWallet.address.slice(0, 4)}...{primaryWallet.address.slice(-4)}
-            </span>
-            <span className="text-white text-md mt-1">Disconnect</span>
-          </>
-        ) : (
-          <DynamicWidget />
-        )}
-        <Image 
-          src="/assets/Profile/wallet-icon.svg" 
-          alt="Wallet Icon" 
-          width={20} 
-          height={20} 
-          className="w-5 h-5"
-        />
-      </div>
-    </CartoonBox>
-  );
-};
 
 const Content: React.FC = () => {
-  const { userData } = useUser();
+  const { userData, refreshUserData } = useUser();
   const { enqueueSnackbar } = useSnackbar();
   const [copying, setCopying] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [isValidAddress, setIsValidAddress] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  // Copy to clipboard function remains the same
+  // Function to copy referral link
   const copyToClipboard = async () => {
     if (!userData?.referalLink || copying) return;
 
@@ -84,6 +26,7 @@ const Content: React.FC = () => {
       });
     } catch (err) {
       console.error('Failed to copy:', err);
+      // Fallback copy method
       const textarea = document.createElement('textarea');
       textarea.value = userData.referalLink;
       document.body.appendChild(textarea);
@@ -103,6 +46,65 @@ const Content: React.FC = () => {
       document.body.removeChild(textarea);
     } finally {
       setCopying(false);
+    }
+  };
+  const validateWalletAddress = (address: string) => {
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return solanaAddressRegex.test(address);
+  };
+
+  const handleWalletAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const address = e.target.value;
+    setWalletAddress(address);
+    setIsValidAddress(validateWalletAddress(address));
+  };
+
+  const handleWalletAction = async () => {
+    if (!isValidAddress) {
+      enqueueSnackbar('Please enter a valid Solana wallet address', {
+        variant: 'error',
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+      return;
+    }
+
+    if (!userData?.t_id) {
+      enqueueSnackbar('User ID not found', {
+        variant: 'error',
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+      return;
+    }
+
+    setIsRegistering(true);
+    try {
+      const response = await fetch('/api/register-wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ walletAddress, t_id: userData.t_id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        enqueueSnackbar('Wallet updated successfully!', {
+          variant: 'success',
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        });
+        await refreshUserData();
+      } else {
+        throw new Error(data.error || 'Failed to update wallet');
+      }
+    } catch (error : any) {
+      console.error('Wallet update error:', error);
+      enqueueSnackbar(error.message || 'Failed to update wallet', {
+        variant: 'error',
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -175,9 +177,38 @@ const Content: React.FC = () => {
               </p>
             </div>
           </div>
-
           <div className="mt-4">
-            <WalletButton />
+            <input
+              type="text"
+              placeholder="Enter your Solana wallet address"
+              value={walletAddress}
+              onChange={handleWalletAddressChange}
+              className={`w-full p-2 mb-2 rounded ${
+                userData?.walletAddress ? 'bg-gray-200 text-gray-700' : 'text-black'
+              }`}
+              disabled={isRegistering}
+            />
+            <CartoonBox
+              backgroundColor="#000"
+              borderColor="transparent"
+              className={`w-full cursor-pointer transition-transform duration-200 ${
+                isValidAddress && !isRegistering ? 'bg-opacity-100' : 'bg-opacity-50'
+              } hover:scale-[1.02] active:scale-[0.98]`}
+              onClick={handleWalletAction}
+            >
+              <div className="sm:py-2 flex items-center justify-center gap-2">
+                <span className="text-white text-md mt-1">
+                  {isRegistering ? 'Updating...' : (userData?.walletAddress ? 'Change wallet' : 'Register wallet')}
+                </span>
+                <Image 
+                  src="/assets/Profile/wallet-icon.svg" 
+                  alt="Wallet Icon" 
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+              </div>
+            </CartoonBox>
           </div>
         </div>
       </div>
@@ -185,23 +216,4 @@ const Content: React.FC = () => {
   );
 };
 
-const WrappedContent: React.FC = () => {
-  return (
-    <DynamicContextProvider
-      settings={{
-        environmentId: "d0e577ef-2b42-414a-b164-58496a29adbf", // Replace with your Dynamic environment ID
-        newToWeb3WalletChainMap: {
-           primary_chain: "sol", 
-           wallets: {
-               evm: "phantomevm",
-               solana: "phantom"
-           }
-        }
-      }}
-    >
-      <Content />
-    </DynamicContextProvider>
-  );
-};
-
-export default WrappedContent;
+export default Content;
