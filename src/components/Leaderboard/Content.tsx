@@ -17,6 +17,8 @@ interface User {
   items: any[];
   referalLink: string;
   last_login_timestamp: string;
+  walletAddress: string;
+  avatar_url: string;
 }
 
 // Variants for animations
@@ -114,7 +116,7 @@ const Content: React.FC<ContentProps> = ({ currentUser, leaderboard }) => {
               <span className="text-sm sm:text-lg">{currentUserRank}.</span>
               <div className="flex items-center gap-x-2">
                 <Image
-                  src="/assets/Leaderboard/avatar-template.png"
+                  src={currentUser.avatar_url}
                   alt="User Avatar"
                   width={48}
                   height={48}
@@ -164,7 +166,7 @@ const Content: React.FC<ContentProps> = ({ currentUser, leaderboard }) => {
                 </span>
                 <div className="flex items-center gap-x-2">
                   <Image
-                    src="/assets/Leaderboard/avatar-template.png"
+                    src={currentUser.avatar_url}
                     alt={`${user.t_name} Avatar`}
                     width={40}
                     height={40}

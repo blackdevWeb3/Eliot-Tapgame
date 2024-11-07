@@ -67,7 +67,7 @@ const Header: React.FC = () => {
       {/* Profile Section */}
       <div className="h-20 flex gap-x-6 items-center justify-center sm:justify-around">
         <Image 
-          src="/assets/Play/Avatar.png" 
+          src={userData?.avatar_url || "/assets/Play/Avatar.png"}
           alt="Avatar icon" 
           className="z-10" 
           width={64} 

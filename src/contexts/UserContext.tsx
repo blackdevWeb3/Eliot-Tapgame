@@ -27,6 +27,7 @@ interface UserData {
   referalLink: string;
   last_login_timestamp: string;
   walletAddress: string;
+  avatar_url: string;
 }
 
 interface UserContextType {
