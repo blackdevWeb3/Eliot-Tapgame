@@ -107,7 +107,7 @@ const Content: React.FC = () => {
       const x = event.touches[0].clientX - containerRect.left;
       const y = event.touches[0].clientY - containerRect.top;
 
-      const earnedAmount = touches * userData.earnPerTap;
+      const earnedAmount = touches * (userData.earnPerTap + userData.items[0]);
       setEarnings((prevEarnings) => prevEarnings + earnedAmount);
 
       setUserData({
@@ -168,30 +168,6 @@ const Content: React.FC = () => {
         className="relative w-full max-w-md flex items-center justify-center"
         style={{ aspectRatio: "1 / 1" }}
       >
-        {/* Star Image */}
-        {/*<motion.div
-          className="absolute bottom-4 left-4 w-36 h-36 z-50 flex justify-center items-center"
-          variants={starAnimationVariants}
-          animate={starAnimate ? "animate" : "initial"}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src="/star.svg"
-              alt="Star"
-              fill
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-          <div 
-            className="absolute inset-0 flex items-center justify-center"
-            style={{
-              textShadow: '2px 2px 0px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            <p className="text-4xl font-bold text-white select-none">+1</p>
-          </div>
-        </motion.div>*/}
-
         {/* Existing Character Image and other elements */}
         <motion.div
           variants={tapVariants}
@@ -221,7 +197,7 @@ const Content: React.FC = () => {
               animate="animate"
               exit="animate"
             >
-              +1
+              +{1 + userData?.items[0]}
             </motion.div>
           ))}
         </AnimatePresence>}

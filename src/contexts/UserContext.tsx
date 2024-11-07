@@ -58,7 +58,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return isNaN(parsedValue) ? 500 : parsedValue;
       }
       // If no saved value, use userData?.energy or default to 500
-      return userData?.energy || 500;
+      return (userData?.energy  || 0 + userData?.items[2] * 500) || 500;
     }
     return 500;
   });
@@ -109,7 +109,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (timePassed > 0) {
           setMount(prev => {
             const prevValue = isNaN(prev) ? 500 : prev;
-            const newMount = Math.min(prevValue + timePassed, userData.energy);
+            const newMount = Math.min(prevValue + timePassed * (1 + userData.items[1]), userData.energy);
             return newMount;
           });
         }
@@ -119,7 +119,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setMount(prevMount => {
           const prevValue = isNaN(prevMount) ? 500 : prevMount;
           if (prevValue < userData.energy) {
-            return prevValue + 1;
+            return prevValue + (1 + userData.items[1]);
           }
           return prevValue;
         });

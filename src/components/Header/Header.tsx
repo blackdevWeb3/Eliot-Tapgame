@@ -164,7 +164,7 @@ const Header: React.FC = () => {
                 className="ml-0 sm:ml-6"
               />
               <span className="text-nowrap text-sm smd:text-lg font-medium text-[#1B2F31]">
-                {mount}/{userData?.energy || 0} Energy
+                {mount}/{(userData?.energy  || 0 + userData?.items[2] * 500)} Energy
               </span>
             </div>
           </CartoonBox>
