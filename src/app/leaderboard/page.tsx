@@ -6,18 +6,20 @@ import { useUser } from '@/contexts/UserContext'
 import MenuTemplate from "@/scenes/Menu";
 
 interface User {
-  _id: { $oid: string }
-  t_id: string
-  t_name: string
-  balance: number
-  totalEarned: number
-  earnPerTap: number
-  energy: number
-  invitees: string[]
-  isPremium: boolean
-  items: any[]
-  referalLink: string
-  last_login_timestamp: string
+  _id: { $oid: string };
+  t_id: string;
+  t_name: string;
+  balance: number;
+  totalEarned: number;
+  earnPerTap: number;
+  energy: number;
+  invitees: string[];
+  isPremium: boolean;
+  items: any[];
+  referalLink: string;
+  last_login_timestamp: string;
+  walletAddress: string;
+  avatar_url: string;
 }
 
 export default function LeaderboardPage() {
