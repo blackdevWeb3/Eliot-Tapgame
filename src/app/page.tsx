@@ -123,7 +123,29 @@ function MainContent() {
         const userData = await response.json();
         setUserData(userData);
 
-        if (invite || (userData && userData.savedCode)) {
+        if(invite){
+          try {
+            const saveResponse = await fetch('/api/saveCode', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: userData.t_id,
+                code: "000000"
+              }),
+            });
+    
+            if (!saveResponse.ok) {
+              throw new Error('Failed to save code');
+            }
+            router.push('/play');
+          } catch (error) {
+            console.error('Error saving code:', error);
+          }
+        }
+
+        if ((userData && userData.savedCode)) {
           router.push('/play');
         }
       } catch (error) {
@@ -147,7 +169,7 @@ function MainContent() {
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
     }
   }, []);
-  
+
   const handleCodeComplete = async (code: string) => {
     setError('');
     setIsLoading(true);
