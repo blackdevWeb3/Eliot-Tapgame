@@ -128,7 +128,7 @@ const Content: React.FC<ContentProps> = ({ currentUser, leaderboard }) => {
               </div>
             </div>
             <span className="text-sm sm:text-md text-[#FAB757]">
-              {currentUser.totalEarned.toLocaleString()}pts
+              {(currentUser.totalEarned || 0).toLocaleString()}pts
             </span>
           </div>
         </CartoonBox>
@@ -179,7 +179,7 @@ const Content: React.FC<ContentProps> = ({ currentUser, leaderboard }) => {
                 </div>
               </div>
               <span className="text-sm sm:text-md text-[#FAB757]">
-                {user.totalEarned.toLocaleString()}pts
+                {(user.totalEarned || 0).toLocaleString()}pts
               </span>
             </CartoonBox>
           </motion.div>
