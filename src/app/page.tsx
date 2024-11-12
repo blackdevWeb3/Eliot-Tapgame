@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
@@ -6,7 +7,12 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 
-function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) => void }) {
+interface InviteCodeInputProps {
+  onCodeComplete: (code: string) => void;
+  onReset?: () => void;
+}
+
+function InviteCodeInput({ onCodeComplete, onReset }: InviteCodeInputProps) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [currentIndex, setCurrentIndex] = useState(0);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +25,7 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
   }, [code, onCodeComplete]);
 
   const handleInput = (value: string) => {
+    if (onReset) onReset();
     if (/^[a-zA-Z0-9]$/.test(value)) {
       if (currentIndex < 6) {
         const newCode = [...code];
@@ -30,6 +37,7 @@ function InviteCodeInput({ onCodeComplete }: { onCodeComplete: (code: string) =>
   };
 
   const handleBackspace = () => {
+    if (onReset) onReset();
     const newCode = [...code];
     if (currentIndex === 5 && code[5] !== '') {
       newCode[5] = '';
@@ -90,14 +98,17 @@ function MainContent() {
   const [isComplete, setIsComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [verifiedCode, setVerifiedCode] = useState<string>('');
   
   const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
   const searchParams = useSearchParams();
-  const { setUserData } = useUser();
+  const { userData, setUserData } = useUser();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const checkInviteAndSavedCode = async () => {
       const id = searchParams.get('id');
+      const invite = searchParams.get('invite');
       
       if (!id) {
         console.error('No ID provided');
@@ -111,12 +122,16 @@ function MainContent() {
         }
         const userData = await response.json();
         setUserData(userData);
+
+        if (invite || (userData && userData.savedCode)) {
+          router.push('/play');
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
 
-    fetchUserData();
+    checkInviteAndSavedCode();
   }, [searchParams, router, setUserData]);
 
   useEffect(() => {
@@ -133,12 +148,63 @@ function MainContent() {
     }
   }, []);
   
-  const handleCodeComplete = (code: string) => {
-    setIsComplete(true);
-  };
+  const handleCodeComplete = async (code: string) => {
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/verifyCode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          code,
+          userId: userData?.t_id // Send the user's Telegram ID
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!data.success) {
+        setError(data.message);
+        setIsComplete(false);
+        return;
+      }
+  
+      setVerifiedCode(code);
+      setIsComplete(true);
+      
+      if (userData?.t_id) {
+        try {
+          const saveResponse = await fetch('/api/saveCode', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: userData.t_id,
+              code: code
+            }),
+          });
+  
+          if (!saveResponse.ok) {
+            throw new Error('Failed to save code');
+          }
+        } catch (error) {
+          console.error('Error saving code:', error);
+        }
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.');
+      setIsComplete(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };  
 
   const handleSubmit = async () => {
-    if (!isComplete || isLoading) return;
+    if (!isComplete || isLoading || !verifiedCode) return;
     
     setIsLoading(true);
     try {
@@ -184,7 +250,6 @@ function MainContent() {
             backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Background Items */}
           <div className="absolute left-0 top-0">
             <Image
               src="/back/left-top.svg"
@@ -213,7 +278,6 @@ function MainContent() {
             />
           </div>
 
-          {/* Content */}
           <div className="flex flex-col items-center pt-5">
             <Image
               src="/back/icon.svg"
@@ -232,8 +296,17 @@ function MainContent() {
             </p>
 
             <div className="mt-4">
-              <InviteCodeInput onCodeComplete={handleCodeComplete} />
+              <InviteCodeInput 
+                onCodeComplete={handleCodeComplete}
+                onReset={() => setError('')}
+              />
             </div>
+
+            {error && (
+              <p className="mt-2 text-red-500 font-medium text-center">
+                {error}
+              </p>
+            )}
 
             <button 
               onClick={handleSubmit}
