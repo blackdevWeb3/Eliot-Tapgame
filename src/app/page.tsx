@@ -100,6 +100,7 @@ function MainContent() {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [verifiedCode, setVerifiedCode] = useState<string>('');
+  const [inputCode, setInputCode] = useState<string>('');
   
   const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
   const searchParams = useSearchParams();
@@ -170,10 +171,17 @@ function MainContent() {
     }
   }, []);
 
-  const handleCodeComplete = async (code: string) => {
-    setError('');
-    setIsLoading(true);
+  const handleCodeComplete = (code: string) => {
+    setInputCode(code);
+    setIsComplete(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!isComplete || isLoading || !inputCode) return;
     
+    setIsLoading(true);
+    setError('');
+
     try {
       const response = await fetch('/api/verifyCode', {
         method: 'POST',
@@ -181,8 +189,8 @@ function MainContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          code,
-          userId: userData?.t_id // Send the user's Telegram ID
+          code: inputCode,
+          userId: userData?.t_id
         }),
       });
   
@@ -194,8 +202,7 @@ function MainContent() {
         return;
       }
   
-      setVerifiedCode(code);
-      setIsComplete(true);
+      setVerifiedCode(inputCode);
       
       if (userData?.t_id) {
         try {
@@ -206,7 +213,7 @@ function MainContent() {
             },
             body: JSON.stringify({
               userId: userData.t_id,
-              code: code
+              code: inputCode
             }),
           });
   
@@ -217,42 +224,17 @@ function MainContent() {
           console.error('Error saving code:', error);
         }
       }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+      router.push('/play');
     } catch (error) {
+      console.error('Error:', error);
       setError('An error occurred. Please try again.');
       setIsComplete(false);
     } finally {
       setIsLoading(false);
     }
-  };  
-
-  const handleSubmit = async () => {
-    if (!isComplete || isLoading || !verifiedCode) return;
-    
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      router.push('/play');
-    } catch (error) {
-      console.error('Error:', error);
-      setIsLoading(false);
-    }
   };
-
-  if (!isMobile) {
-    return (
-      <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center text-white">
-        <h1 className="text-2xl mb-8 text-white">Please run the app on mobile device</h1>
-        <div className="bg-white p-4 rounded-lg">
-          <QRCodeSVG
-            value="https://t.me/chuckletapbot"
-            size={200}
-            level="H"
-            includeMargin={false}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full min-h-screen h-full flex items-center justify-center p-4 bg-[#1C1C1E]">

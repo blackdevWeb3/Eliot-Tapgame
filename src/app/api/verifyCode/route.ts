@@ -6,6 +6,8 @@ const uri = "mongodb+srv://lightningdev722:sjW86eKb4TttfzQr@cluster0.rq0edjh.mon
 export async function POST(request: Request) {
   try {
     const { code, userId } = await request.json();
+
+    console.log(code, userId);
     
     if (!code || !userId) {
       return NextResponse.json(
@@ -45,7 +47,9 @@ export async function POST(request: Request) {
             }
           );
 
-          if (!result?.value) {
+          console.log(result);
+
+          if (!result) {
             // Check if the code exists at all
             const codeExists = await collection.findOne({ code: code });
             
