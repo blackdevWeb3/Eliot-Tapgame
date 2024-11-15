@@ -201,10 +201,9 @@ function MainContent() {
       if (!data.success) {
         setError(data.message);
         setIsComplete(false);
-        setIsVerifying(false);
         return;
       }
-  
+      setIsVerifying(false);
       setVerifiedCode(inputCode);
       
       if (userData?.t_id) {
