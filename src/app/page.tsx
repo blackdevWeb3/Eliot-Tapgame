@@ -151,10 +151,11 @@ function MainContent() {
         if ((userData && userData.savedCode)) {
           router.push('/play');
         }
+        else{
+          setIsVerifying(false);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
-      } finally {
-        setIsVerifying(false);
       }
     };
 
@@ -236,7 +237,6 @@ function MainContent() {
       setIsComplete(false);
     } finally {
       setIsLoading(false);
-      setIsVerifying(false);
     }
   };
 
