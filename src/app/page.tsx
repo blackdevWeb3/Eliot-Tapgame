@@ -101,6 +101,7 @@ function MainContent() {
   const [error, setError] = useState<string>('');
   const [verifiedCode, setVerifiedCode] = useState<string>('');
   const [inputCode, setInputCode] = useState<string>('');
+  const [isVerifying, setIsVerifying] = useState(false);
   
   const isMobileDevice = () => /Mobi|Android/i.test(navigator.userAgent);
   const searchParams = useSearchParams();
@@ -180,6 +181,7 @@ function MainContent() {
     if (!isComplete || isLoading || !inputCode) return;
     
     setIsLoading(true);
+    setIsVerifying(true);
     setError('');
 
     try {
@@ -199,6 +201,7 @@ function MainContent() {
       if (!data.success) {
         setError(data.message);
         setIsComplete(false);
+        setIsVerifying(false);
         return;
       }
   
@@ -233,6 +236,7 @@ function MainContent() {
       setIsComplete(false);
     } finally {
       setIsLoading(false);
+      setIsVerifying(false);
     }
   };
 
@@ -254,6 +258,7 @@ function MainContent() {
             backgroundRepeat: 'no-repeat'
           }}
         >
+          {/* Background decorations */}
           <div className="absolute left-0 top-0">
             <Image
               src="/back/left-top.svg"
@@ -299,41 +304,50 @@ function MainContent() {
               Enter your invite code to claim your airdrop
             </p>
 
-            <div className="mt-4">
-              <InviteCodeInput 
-                onCodeComplete={handleCodeComplete}
-                onReset={() => setError('')}
-              />
-            </div>
+            {isVerifying ? (
+              <div className="mt-[100px] flex flex-col items-center">
+                <div className="w-12 h-12 border-4 border-[#569CAA] border-t-transparent rounded-full animate-spin" />
+                <p className="mt-4 text-black font-medium">Verifying code...</p>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <InviteCodeInput 
+                    onCodeComplete={handleCodeComplete}
+                    onReset={() => setError('')}
+                  />
+                </div>
 
-            {error && (
-              <p className="mt-2 text-red-500 font-medium text-center">
-                {error}
-              </p>
+                {error && (
+                  <p className="mt-2 text-red-500 font-medium text-center">
+                    {error}
+                  </p>
+                )}
+
+                <button 
+                  onClick={handleSubmit}
+                  disabled={!isComplete || isLoading}
+                  className={`mt-[120px] px-6 py-3 flex items-center gap-2 text-xl font-bold
+                    transition-all duration-200 transform active:scale-95
+                    ${isComplete 
+                      ? 'bg-[#569CAA] text-white hover:bg-[#4a8795] cursor-pointer' 
+                      : 'bg-[#8BA1A5] text-gray-300 cursor-not-allowed'
+                    }
+                    ${isLoading ? 'animate-pulse' : ''}
+                  `}
+                >
+                  {isLoading ? 'Processing...' : 'Submit'}
+                  <ArrowRight size={20} />
+                </button>
+
+                <button 
+                  onClick={() => router.back()} 
+                  className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity text-black"
+                >
+                  Cancel
+                </button>
+              </>
             )}
-
-            <button 
-              onClick={handleSubmit}
-              disabled={!isComplete || isLoading}
-              className={`mt-[120px] px-6 py-3 flex items-center gap-2 text-xl font-bold
-                transition-all duration-200 transform active:scale-95
-                ${isComplete 
-                  ? 'bg-[#569CAA] text-white hover:bg-[#4a8795] cursor-pointer' 
-                  : 'bg-[#8BA1A5] text-gray-300 cursor-not-allowed'
-                }
-                ${isLoading ? 'animate-pulse' : ''}
-              `}
-            >
-              {isLoading ? 'Processing...' : 'Submit'}
-              <ArrowRight size={20} />
-            </button>
-
-            <button 
-              onClick={() => router.back()} 
-              className="mt-3 mb-16 text-base font-bold leading-[19.47px] hover:opacity-70 transition-opacity text-black"
-            >
-              Cancel
-            </button>
           </div>
         </div>
       </div>
