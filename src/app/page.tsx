@@ -111,6 +111,7 @@ function MainContent() {
     const checkInviteAndSavedCode = async () => {
       const id = searchParams.get('id');
       const invite = searchParams.get('invite');
+      setIsVerifying(true);
       
       if (!id) {
         console.error('No ID provided');
@@ -152,6 +153,8 @@ function MainContent() {
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+      } finally {
+        setIsVerifying(false);
       }
     };
 
@@ -181,7 +184,6 @@ function MainContent() {
     if (!isComplete || isLoading || !inputCode) return;
     
     setIsLoading(true);
-    setIsVerifying(true);
     setError('');
 
     try {
@@ -203,7 +205,6 @@ function MainContent() {
         setIsComplete(false);
         return;
       }
-      setIsVerifying(false);
       setVerifiedCode(inputCode);
       
       if (userData?.t_id) {
