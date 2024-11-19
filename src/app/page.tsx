@@ -93,6 +93,31 @@ function InviteCodeInput({ onCodeComplete, onReset }: InviteCodeInputProps) {
   );
 }
 
+function DesktopView() {
+  return (
+    <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center p-4">
+      <h1 className="text-white text-2xl font-bold mb-8">
+        Please run the app on mobile device
+      </h1>
+      <div className="bg-white p-4 rounded-lg">
+        <QRCodeSVG 
+          value="https://t.me/chuckletapbot"
+          size={200}
+          level="H"
+        />
+      </div>
+      <a 
+        href="https://t.me/chuckletapbot" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="mt-6 text-blue-400 hover:text-blue-300 transition-colors"
+      >
+        Open in Telegram
+      </a>
+    </div>
+  );
+}
+
 function MainContent() {
   const router = useRouter();
   const [isComplete, setIsComplete] = useState(false);
@@ -107,6 +132,24 @@ function MainContent() {
   const searchParams = useSearchParams();
   const { userData, setUserData } = useUser();
 
+  const [isMobileView, setIsMobileView] = useState(true);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      setIsMobileView(isMobile);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
+  // If not mobile device, show desktop view
+  if (!isMobileView) {
+    return <DesktopView />;
+  }
+  
   useEffect(() => {
     const checkInviteAndSavedCode = async () => {
       const id = searchParams.get('id');
