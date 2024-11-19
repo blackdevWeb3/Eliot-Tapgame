@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   const { userData, setUserData, mount } = useUser();
   
   // Ensure we have a default value for points
-  const points = userData?.balance ?? 0;
+  const points = userData?.totalEarned ?? 0;
   const level = calculateLevel(points);
   const progress = calculateProgress(points);
   
