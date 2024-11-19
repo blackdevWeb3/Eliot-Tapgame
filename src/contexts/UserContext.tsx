@@ -109,7 +109,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (timePassed > 0) {
           setMount(prev => {
             const prevValue = isNaN(prev) ? 500 : prev;
-            const newMount = Math.min(prevValue + timePassed * (1 + (userData.items[1] || 0)), userData.energy);
+            const newMount = Math.min(prevValue + timePassed * (1 + (userData.items[1] || 0)), (500 + (userData?.items[2] || 0) * 500));
             return newMount;
           });
         }
@@ -118,7 +118,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       intervalId = setInterval(() => {
         setMount(prevMount => {
           const prevValue = isNaN(prevMount) ? 500 : prevMount;
-          if (prevValue < userData.energy) {
+          if (prevValue < (500 + (userData?.items[2] || 0) * 500)) {
             return prevValue + (1 + (userData.items[1] || 0));
           }
           return prevValue;
