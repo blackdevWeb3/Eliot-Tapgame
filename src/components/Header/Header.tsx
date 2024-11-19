@@ -43,6 +43,7 @@ const Header: React.FC = () => {
   
   // Ensure we have a default value for points
   const points = userData?.totalEarned ?? 0;
+  const currentBalance = userData?.balance ?? 0;
   const level = calculateLevel(points);
   const progress = calculateProgress(points);
   
@@ -133,7 +134,7 @@ const Header: React.FC = () => {
                 className="ml-0 sm:ml-6"
               />
               <span className="text-nowrap text-sm smd:text-lg font-medium text-white">
-                {formatNumber(points)} pts
+                {formatNumber(currentBalance)} pts
               </span>
             </div>
           </CartoonBox>
