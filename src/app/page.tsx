@@ -145,11 +145,6 @@ function MainContent() {
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
-  // If not mobile device, show desktop view
-  if (!isMobileView) {
-    return <DesktopView />;
-  }
-  
   useEffect(() => {
     const checkInviteAndSavedCode = async () => {
       const id = searchParams.get('id');
@@ -283,6 +278,11 @@ function MainContent() {
     }
   };
 
+  // If not mobile device, show desktop view
+  if (!isMobileView) {
+    return <DesktopView />;
+  }
+  
   return (
     <div className="w-full min-h-screen h-full flex items-center justify-center p-4 bg-[#1C1C1E]">
       <div className="relative w-full max-w-md mx-auto">
