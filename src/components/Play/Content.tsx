@@ -52,13 +52,14 @@ const Content: React.FC = () => {
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
   const [pendingSave, setPendingSave] = useState(false);
   const [starAnimate, setStarAnimate] = useState(false);
+  const accumulatedEarningsRef = useRef<number>(0);
 
-
-  // Function to save to database
-  const saveToDatabase = async (earnedAmount: number) => {
-    if (!userData) return;
+  // Function to save to database with accumulated earnings
+  const saveToDatabase = async () => {
+    if (!userData || accumulatedEarningsRef.current === 0) return;
     
     try {
+      const earnedAmount = accumulatedEarningsRef.current;
       const response = await fetch('/api/updateUser', {
         method: 'POST',
         headers: {
@@ -66,10 +67,9 @@ const Content: React.FC = () => {
         },
         body: JSON.stringify({
           userId: userData.t_id,
-          balance: userData.balance + earnedAmount,
-          totalEarned: userData.totalEarned + earnedAmount,
+          balance: userData.balance,
+          totalEarned: userData.totalEarned,
         }),
-        // Add cache: 'no-store' to prevent caching
         cache: 'no-store',
       });
 
@@ -78,18 +78,34 @@ const Content: React.FC = () => {
         throw new Error(error.message || 'Failed to save');
       }
 
+      // Reset accumulated earnings after successful save
+      accumulatedEarningsRef.current = 0;
       setPendingSave(false);
     } catch (error) {
       console.error('Error saving to database:', error);
-      // You might want to implement retry logic here
-      setPendingSave(true); // Keep pending flag true to retry on next save attempt
+      setPendingSave(true);
     }
   };
+
+  // Debounced save function
+  const debouncedSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToDatabase();
+    }, 500);
+  }, []);
 
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
+      }
+      // Save any pending changes when component unmounts
+      if (accumulatedEarningsRef.current > 0) {
+        saveToDatabase();
       }
     };
   }, []);
@@ -99,17 +115,18 @@ const Content: React.FC = () => {
     const containerRect = containerRef.current?.getBoundingClientRect();
     
     if (containerRect && userData && mount > 0) {
-      // Trigger star animation
       setStarAnimate(true);
       setTimeout(() => setStarAnimate(false), 400);
 
-      // ... rest of the existing handleTap implementation
       const x = event.touches[0].clientX - containerRect.left;
       const y = event.touches[0].clientY - containerRect.top;
 
       const earnedAmount = touches * (userData.earnPerTap + userData.items[0]);
+      
+      // Accumulate earnings
+      accumulatedEarningsRef.current += earnedAmount;
+      
       setEarnings((prevEarnings) => prevEarnings + earnedAmount);
-
       setUserData({
         ...userData,
         balance: userData.balance + earnedAmount,
@@ -128,26 +145,22 @@ const Content: React.FC = () => {
       const newMount = Math.max(0, mount - 1);
       setMount(newMount);
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
+      // Set pending save flag
       setPendingSave(true);
-
-      saveTimeoutRef.current = setTimeout(() => {
-        saveToDatabase(earnedAmount);
-      }, 500);
+      
+      // Trigger debounced save
+      debouncedSave();
 
       setTimeout(() => {
         setPlusOnes((prevPlusOnes) => prevPlusOnes.slice(touches));
       }, 1000);
     }
-  }, [userData, setUserData, mount, setMount]);
+  }, [userData, setUserData, mount, setMount, debouncedSave]);
 
   useEffect(() => {
     return () => {
       if (pendingSave) {
-        saveToDatabase(0);
+        saveToDatabase();
       }
     };
   }, [pendingSave]);
