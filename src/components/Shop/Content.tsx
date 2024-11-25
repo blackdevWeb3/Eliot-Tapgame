@@ -55,9 +55,9 @@ export const SHOP_ITEMS: ShopItem[] = [
   {
     id: 'tapStrength',
     name: 'Tap Strength',
-    description: 'Increases earnings per tap by 1',
+    description: 'Increases earnings per tap by 10',
     baseIncrease: 1,
-    baseCost: 2000,
+    baseCost: 5000,
     icon: '/assets/Shop/sword-icon.svg',
     type: ShopItemType.TAP_STRENGTH,  // Using enum value
     maxLevel: 10
@@ -67,7 +67,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     name: 'Recover Speed',
     description: 'Increases energy recovery speed by 1',
     baseIncrease: 1,
-    baseCost: 2000,
+    baseCost: 5000,
     icon: '/assets/Shop/heart-icon.svg',
     type: ShopItemType.RECOVER_SPEED,  // Using enum value
     maxLevel: 10
@@ -77,7 +77,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     name: 'Energy Level',
     description: 'Increases max energy by 500',
     baseIncrease: 500,
-    baseCost: 2000,
+    baseCost: 5000,
     icon: '/assets/Shop/shield-icon.svg',
     type: ShopItemType.ENERGY_LEVEL,  // Using enum value
     maxLevel: 10
