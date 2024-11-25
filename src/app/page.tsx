@@ -106,14 +106,6 @@ function DesktopView() {
           level="H"
         />
       </div>
-      <a 
-        href="https://t.me/chuckletapbot" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="mt-6 text-blue-400 hover:text-blue-300 transition-colors"
-      >
-        Open in Telegram
-      </a>
     </div>
   );
 }

@@ -28,6 +28,7 @@ interface UserData {
   last_login_timestamp: string;
   walletAddress: string;
   avatar_url: string;
+  twitter_username: string
 }
 
 interface UserContextType {

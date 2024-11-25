@@ -121,7 +121,7 @@ const Content: React.FC = () => {
       const x = event.touches[0].clientX - containerRect.left;
       const y = event.touches[0].clientY - containerRect.top;
 
-      const earnedAmount = touches * (userData.earnPerTap + userData.items[0]);
+      const earnedAmount = touches * (userData.earnPerTap + userData.items[0]) * 10;
       
       // Accumulate earnings
       accumulatedEarningsRef.current += earnedAmount;
@@ -210,7 +210,7 @@ const Content: React.FC = () => {
               animate="animate"
               exit="animate"
             >
-              +{1 + userData?.items[0]}
+              +{(1 + userData?.items[0]) * 10}
             </motion.div>
           ))}
         </AnimatePresence>}
