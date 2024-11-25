@@ -136,7 +136,7 @@ const Content: React.FC = () => {
 
   const handlePurchase = async (item: ShopItem) => {
     if (!userData) {
-      enqueueSnackbar('User data not available', { variant: 'error' });
+      enqueueSnackbar('User data not available', { variant: 'error', autoHideDuration: 3000 });
       return;
     }
 
@@ -144,12 +144,12 @@ const Content: React.FC = () => {
     const cost = calculateCost(item.baseCost, currentLevel);
 
     if (currentLevel >= item.maxLevel) {
-      enqueueSnackbar('Already at max level', { variant: 'error' });
+      enqueueSnackbar('Already at max level', { variant: 'error', autoHideDuration: 3000 });
       return;
     }
 
     if (userData.balance < cost) {
-      enqueueSnackbar('Insufficient balance', { variant: 'error' });
+      enqueueSnackbar('Insufficient balance', { variant: 'error', autoHideDuration: 3000 });
       return;
     }
 
@@ -173,9 +173,9 @@ const Content: React.FC = () => {
 
       const data = await response.json();
       setUserData(data.user);
-      enqueueSnackbar(`Successfully upgraded ${item.name}!`, { variant: 'success' });
+      enqueueSnackbar(`Successfully upgraded ${item.name}!`, { variant: 'success', autoHideDuration: 3000 });
     } catch (error) {
-      enqueueSnackbar((error as Error).message || 'Failed to purchase item', { variant: 'error' });
+      enqueueSnackbar((error as Error).message || 'Failed to purchase item', { variant: 'error', autoHideDuration: 3000 });
     } finally {
       setIsLoading(null);
     }

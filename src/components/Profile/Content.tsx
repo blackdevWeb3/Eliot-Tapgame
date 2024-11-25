@@ -35,12 +35,12 @@ const Content: React.FC = () => {
         document.execCommand('copy');
         enqueueSnackbar('Referral link copied to clipboard!', {
           variant: 'success',
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+          anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
         });
       } catch (err) {
         enqueueSnackbar('Failed to copy referral link', {
           variant: 'error',
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+          anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
         });
       }
       document.body.removeChild(textarea);
@@ -63,7 +63,7 @@ const Content: React.FC = () => {
     if (!isValidAddress) {
       enqueueSnackbar('Please enter a valid Solana wallet address', {
         variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
       });
       return;
     }
@@ -71,7 +71,7 @@ const Content: React.FC = () => {
     if (!userData?.t_id) {
       enqueueSnackbar('User ID not found', {
         variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
       });
       return;
     }
@@ -91,7 +91,7 @@ const Content: React.FC = () => {
       if (response.ok) {
         enqueueSnackbar('Wallet updated successfully!', {
           variant: 'success',
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+          anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
         });
         await refreshUserData();
       } else {
@@ -101,7 +101,7 @@ const Content: React.FC = () => {
       console.error('Wallet update error:', error);
       enqueueSnackbar(error.message || 'Failed to update wallet', {
         variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        anchorOrigin: { vertical: 'top', horizontal: 'center' }, autoHideDuration: 3000
       });
     } finally {
       setIsRegistering(false);

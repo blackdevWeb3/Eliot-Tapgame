@@ -141,7 +141,7 @@ const Content: React.FC = () => {
         enqueueSnackbar(`Task completed! Earned ${task.points} points`, {
           variant: 'success',
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
-          autoHideDuration: 10
+          autoHideDuration: 3000
         });
       }
     } catch (error) {
@@ -149,7 +149,7 @@ const Content: React.FC = () => {
       enqueueSnackbar('Failed to claim task reward', {
         variant: 'error',
         anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        autoHideDuration: 10
+        autoHideDuration: 3000
       });
     } finally {
       setLoading(false);
